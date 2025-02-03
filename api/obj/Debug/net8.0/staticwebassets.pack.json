@@ -1,0 +1,37 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\edem-\\Documents\\Anvendt Datateknologi\\Semester 10\\ITPE3200 - Webapplikasjoner\\Konte\\MovieRating\\api\\wwwroot\\js\\bootstrap.js",
+      "PackagePath": "staticwebassets\\js\\bootstrap.js"
+    },
+    {
+      "Id": "C:\\Users\\edem-\\Documents\\Anvendt Datateknologi\\Semester 10\\ITPE3200 - Webapplikasjoner\\Konte\\MovieRating\\api\\wwwroot\\js\\jquery.min.js",
+      "PackagePath": "staticwebassets\\js\\jquery.min.js"
+    },
+    {
+      "Id": "C:\\Users\\edem-\\Documents\\Anvendt Datateknologi\\Semester 10\\ITPE3200 - Webapplikasjoner\\Konte\\MovieRating\\api\\wwwroot\\js\\jquery.validate.js",
+      "PackagePath": "staticwebassets\\js\\jquery.validate.js"
+    },
+    {
+      "Id": "C:\\Users\\edem-\\Documents\\Anvendt Datateknologi\\Semester 10\\ITPE3200 - Webapplikasjoner\\Konte\\MovieRating\\api\\wwwroot\\js\\jquery.validate.unobtrusive.js",
+      "PackagePath": "staticwebassets\\js\\jquery.validate.unobtrusive.js"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.api.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.api.props",
+      "PackagePath": "build\\api.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.api.props",
+      "PackagePath": "buildMultiTargeting\\api.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.api.props",
+      "PackagePath": "buildTransitive\\api.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
