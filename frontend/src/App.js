@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import MovieDetails from './pages/MovieDetails';
+import HomePage from './home/HomePage.tsx';
 
 function App() {
   return (
@@ -9,8 +8,7 @@ function App() {
       <div>
         <h1>Movie Ranking App</h1>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/movies/:id" element={<MovieDetails />} />
+          <Route path="/" element={<HomePage />} />
         </Routes>
       </div>
     </Router>
