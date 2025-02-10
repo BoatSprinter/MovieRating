@@ -9,10 +9,12 @@ namespace api.Controllers;
 public class MoviesController : ControllerBase
 {
     private readonly IMovieRepository _movieRepository;
+    private readonly IWebHostEnvironment _environment;
 
-    public MoviesController(IMovieRepository movieRepository)
+    public MoviesController(IMovieRepository movieRepository, IWebHostEnvironment environment)
     {
         _movieRepository = movieRepository;
+        _environment = environment;
     }
 
     [HttpGet("movieList")]
@@ -30,11 +32,35 @@ public class MoviesController : ControllerBase
         return Ok(movie);
     }
 
-    [HttpPost("addMovie")]
-    public async Task<IActionResult> Create(Movie movie)
+    [HttpPost]
+    public async Task<ActionResult<Movie>> PostMovie([FromForm] Movie movie, IFormFile? image)
     {
-        await _movieRepository.AddAsync(movie);
-        return CreatedAtAction(nameof(GetById), new { id = movie.Id }, movie);
+        if (image != null && image.Length > 0)
+        {
+            var uploadsFolder = Path.Combine("wwwroot", "uploads");
+            var uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            Directory.CreateDirectory(uploadsFolder);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await image.CopyToAsync(fileStream);
+            }
+
+            // Make sure the path starts with a forward slash
+            movie.ImagePath = "/uploads/" + uniqueFileName;
+        }
+
+        try 
+        {
+            await _movieRepository.AddAsync(movie);
+            return CreatedAtAction(nameof(GetById), new { id = movie.Id }, movie);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("updateMovie")]
@@ -50,5 +76,20 @@ public class MoviesController : ControllerBase
     {
         await _movieRepository.DeleteAsync(id);
         return NoContent();
+    }
+
+
+
+    
+
+    [HttpGet("debug")]
+    public ActionResult<IEnumerable<Movie>> GetAllMoviesDebug()
+    {
+        var movies = _movieRepository.GetAllAsync().Result.ToList();
+        return Ok(new
+        {
+            Count = movies.Count,
+            Movies = movies
+        });
     }
 }
