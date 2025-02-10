@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchMovies } from '../services/MovieService.tsx';
 import { Movie } from '../interfaces/movie.tsx';
+import { Row, Col, Card, Spinner, Alert } from 'react-bootstrap';
 
 const HomePage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -21,24 +22,35 @@ const HomePage: React.FC = () => {
     getMovies();
   }, []);
 
-  if (loading) return <p>Loading movies...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <Spinner animation="border" role="status" className="d-block mx-auto" />;
+  if (error) return <Alert variant="danger">{error}</Alert>;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Movie List</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <>
+      <h1 className="text-center mb-4">Featured Movies</h1>
+      <Row xs={1} md={2} lg={3} xl={4} className="g-4">
         {movies.map((movie) => (
-          <div key={movie.id} className="border rounded-lg shadow-lg p-4">
-            <img src={movie.imageUrl} alt={movie.title} className="w-full h-64 object-cover rounded-md mb-2" />
-            <h2 className="text-xl font-semibold">{movie.title}</h2>
-            <p className="text-gray-600">Genre: {movie.genre}</p>
-            <p className="text-gray-600">Release Date: {movie.releaseDate}</p>
-            <p className="text-yellow-500 font-bold">⭐ {movie.averageScore}</p>
-          </div>
+          <Col key={movie.id}>
+            <Card className="h-100">
+              <Card.Img 
+                variant="top" 
+                src={movie.imageUrl} 
+                alt={movie.title}
+                style={{ height: '300px', objectFit: 'cover' }}
+              />
+              <Card.Body>
+                <Card.Title>{movie.title}</Card.Title>
+                <Card.Text>
+                  <div>Genre: {movie.genre}</div>
+                  <div>Release Date: {movie.releaseDate}</div>
+                  <div className="text-warning">⭐ {movie.averageScore}</div>
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
         ))}
-      </div>
-    </div>
+      </Row>
+    </>
   );
 };
 

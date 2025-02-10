@@ -9,15 +9,27 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
         {
-            options.AddPolicy("AllowFrontend",
-                builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            builder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
         });
+});
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 
 // Add DbContext
 builder.Services.AddDbContext<MovieDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// pic test lets see if this works fix comment after-----
+if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads")))
+{
+    Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads"));
+}
 
 var app = builder.Build();
 
@@ -31,9 +43,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
+
+app.UseStaticFiles();
 
 app.MapControllers();
 
