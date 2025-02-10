@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchMovies } from '../services/MovieService.tsx';
 import { Movie } from '../interfaces/movie.tsx';
 import { Row, Col, Card, Spinner, Alert } from 'react-bootstrap';
+import API_URL from '../apiConfig';
 
 const HomePage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -32,17 +33,23 @@ const HomePage: React.FC = () => {
         {movies.map((movie) => (
           <Col key={movie.id}>
             <Card className="h-100">
-              <Card.Img 
-                variant="top" 
-                src={movie.imageUrl} 
-                alt={movie.title}
-                style={{ height: '300px', objectFit: 'cover' }}
-              />
+              {movie.imagePath && (
+                <Card.Img 
+                  variant="top" 
+                  src={`${API_URL}${movie.imagePath}`}
+                  alt={movie.title}
+                  style={{ height: '300px', objectFit: 'cover' }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/300x400?text=No+Image';
+                  }}
+                />
+              )}
               <Card.Body>
                 <Card.Title>{movie.title}</Card.Title>
                 <Card.Text>
                   <div>Genre: {movie.genre}</div>
-                  <div>Release Date: {movie.releaseDate}</div>
+                  <div>Release Date: {new Date(movie.releaseDate).toLocaleDateString()}</div>
                   <div className="text-warning">⭐ {movie.averageScore}</div>
                 </Card.Text>
               </Card.Body>
