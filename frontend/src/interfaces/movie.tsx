@@ -5,5 +5,5 @@ export interface Movie {
     releaseDate: string;
     description: string;
     averageScore: number;
-    imageUrl: string;
+    imagePath: string; 
 }
