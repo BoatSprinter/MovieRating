@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using api.Models;
 using api.DAL;
+using api.ViewModels;
 
 namespace api.Controllers;
 
@@ -10,19 +12,42 @@ public class MoviesController : ControllerBase
 {
     private readonly IMovieRepository _movieRepository;
     private readonly IWebHostEnvironment _environment;
+    private readonly MovieDbContext _context;
 
-    public MoviesController(IMovieRepository movieRepository, IWebHostEnvironment environment)
+    public MoviesController(IMovieRepository movieRepository, IWebHostEnvironment environment, MovieDbContext context)
     {
         _movieRepository = movieRepository;
         _environment = environment;
+        _context = context;
     }
 
-    [HttpGet("movieList")]
+    /* [HttpGet("movieList")]
     public async Task<IActionResult> GetAll()
     {
         var movies = await _movieRepository.GetAllAsync();
         return Ok(movies);
-    }
+    } */
+
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Movie>>> GetMovies()
+    {
+       var movies = await _context.Movies
+           .Include(m => m.Ratings)
+           .Select(m => new
+           {
+               m.Id,
+               m.Title,
+               m.Genre,
+               m.ReleaseDate,
+               m.Description,
+               m.ImagePath,
+               m.AverageScore
+           })
+           .ToListAsync();
+            
+       return Ok(movies);
+   }
 
     [HttpGet("movieId")]
     public async Task<IActionResult> GetById(int id)
@@ -78,18 +103,50 @@ public class MoviesController : ControllerBase
         return NoContent();
     }
 
-
-
-    
-
+//debug endpont fjern detter etter på 
     [HttpGet("debug")]
-    public ActionResult<IEnumerable<Movie>> GetAllMoviesDebug()
-    {
-        var movies = _movieRepository.GetAllAsync().Result.ToList();
-        return Ok(new
+public async Task<ActionResult<object>> GetDebugInfo()
+{
+    // Get all movies with their ratings
+    var movies = await _context.Movies
+        .Include(m => m.Ratings)
+        .Select(m => new
         {
-            Count = movies.Count,
-            Movies = movies
-        });
-    }
+            m.Id,
+            m.Title,
+            m.Genre,
+            m.ReleaseDate,
+            m.Description,
+            m.ImagePath,
+            Ratings = m.Ratings.Select(r => new
+            {
+                r.Id,
+                r.MovieId,
+                r.Score,
+                r.CreatedAt
+            }).ToList(),
+            AverageScore = m.Ratings.Any() ? Math.Round(m.Ratings.Average(r => r.Score), 1) : 0
+        })
+        .ToListAsync();
+
+/*     // Get all ratings separately
+    var allRatings = await _context.Ratings
+        .OrderBy(r => r.MovieId)
+        .Select(r => new
+        {
+            r.Id,
+            r.MovieId,
+            MovieTitle = r.Movie.Title,  // Include the movie title for reference
+            r.Score,
+            r.CreatedAt
+        })
+        .ToListAsync(); */
+
+    return Ok(new
+    {
+      
+        Movies = movies,
+        //Ratings = allRatings
+    });
+}
 }
