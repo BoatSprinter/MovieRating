@@ -3,37 +3,48 @@ using api.Models;
 
 namespace api.DAL;
 
-public static class DBInit
+public class DbInit
 {
     public static void Seed(IApplicationBuilder app)
     {
         using var serviceScope = app.ApplicationServices.CreateScope();
-        MovieDbContext context = serviceScope.ServiceProvider.GetRequiredService<MovieDbContext>();
-        context.Database.EnsureDeleted();
-        context.Database.EnsureCreated();
+        var context = serviceScope.ServiceProvider.GetService<MovieDbContext>();
 
-        if (!context.Movies.Any())
+        // Delete and recreate the database
+        context?.Database.EnsureDeleted();
+        context?.Database.EnsureCreated();
+
+        if (context != null)
         {
-            var movies = new List<Movie>
+            var movie1 = new Movie
             {
-                new Movie
-                {
-                    Title = "Madagascar",
-                    Genre = "Family film",
-                    ReleaseDate = DateTime.Parse("2005-05-27"),
-                    Description = "A group of animals who have spent all their life in a New York zoo end up in the jungles of Madagascar, and must adjust to living in the wild.",
-                    AverageScore = 4.6
-                },
-                new Movie
-                {
-                    Title = "Shrek",
-                    Genre = "Family film",
-                    ReleaseDate = DateTime.Parse("2001-04-22"),
-                    Description = "An embittered ogre named Shrek finds his home in the swamp overrun by fairy tale creatures banished by the obsessive ruler Lord Farquaad.",
-                    AverageScore = 4.4
-                }
+                Title = "Inception",
+                Genre = "Sci-Fi",
+                ReleaseDate = new DateTime(2010, 7, 16),
+                Description = "A thief who steals corporate secrets through dream-sharing technology...",
+                ImagePath = "/uploads/inception.png"
             };
-            context.AddRange(movies);
+
+            var movie2 = new Movie
+            {
+                Title = "The Dark Knight",
+                Genre = "Action",
+                ReleaseDate = new DateTime(2008, 7, 18),
+                Description = "When the menace known as the Joker wreaks havoc and chaos on Gotham...",
+                ImagePath = "/uploads/dark-knight.png"
+            };
+
+            context.Movies.Add(movie1);
+            context.Movies.Add(movie2);
+
+            // Add some initial ratings
+            context.Ratings.AddRange(
+                new Rating { Movie = movie1, Score = 5 },
+                new Rating { Movie = movie1, Score = 4 },
+                new Rating { Movie = movie2, Score = 5 },
+                new Rating { Movie = movie2, Score = 5 }
+            );
+
             context.SaveChanges();
         }
     }
