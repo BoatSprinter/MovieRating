@@ -13,8 +13,10 @@ public class MovieRepository : IMovieRepository
     }
 
     public async Task<IEnumerable<Movie>?> GetAllAsync()
+    
     {
         return await _context.Movies.ToListAsync();
+
     }
 
     public async Task<Movie?> GetByIdAsync(int id)
