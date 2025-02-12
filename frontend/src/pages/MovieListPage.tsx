@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Spinner, Alert, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import API_URL from '../apiConfig';
 
+
+//remove the interface and use import /// remember to do so 
 interface Movie {
   id: number;
   title: string;
@@ -14,6 +16,11 @@ interface Movie {
   imagePath: string;
 }
 
+interface Rating {
+  movieId: number;
+  score: number;
+}
+
 const MovieListPage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +29,7 @@ const MovieListPage: React.FC = () => {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/Movies/movieList`);
+        const response = await axios.get(`${API_URL}/api/Movies`);
         console.log('Movies response:', response.data);
         setMovies(response.data);
       } catch (err) {
@@ -35,6 +42,22 @@ const MovieListPage: React.FC = () => {
 
     fetchMovies();
   }, []);
+
+  const handleRate = async (movieId: number, score: number) => {
+    try {
+      await axios.post(`${API_URL}/api/Ratings`, {
+        MovieId: movieId,
+        Score: score
+      });
+      
+      // Refresh the movies list to get updated average
+      const response = await axios.get(`${API_URL}/api/Movies`);
+      setMovies(response.data);
+    } catch (err) {
+      console.error('Error rating movie:', err);
+      setError('Failed to rate movie');
+    }
+  };
 
   if (loading) {
     return (
@@ -81,6 +104,21 @@ const MovieListPage: React.FC = () => {
                       : movie.description}
                   </div>
                 </Card.Text>
+                <div className="mt-3">
+                  <p>Rate this movie:</p>
+                  <div className="d-flex gap-2">
+                    {[1, 2, 3, 4, 5].map((score) => (
+                      <Button
+                        key={score}
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleRate(movie.id, score)}
+                      >
+                        {score} ⭐
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 <Link 
                   to={`/movies/${movie.id}`} 
                   className="btn btn-primary"
