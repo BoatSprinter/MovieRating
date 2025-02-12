@@ -1,11 +1,21 @@
 using Microsoft.EntityFrameworkCore;
 using api.Models;
 using api.DAL;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers();
+// fjern etter husskkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();  // This ensures logs go to console
+builder.Logging.AddDebug();    // This ensures logs go to debug output
+
+// Add services to the container sjekk om man trenger de jason stuffene på controller fortsatt.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
@@ -33,10 +43,12 @@ if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot
 
 var app = builder.Build();
 
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    DBInit.Seed(app);
+    DbInit.Seed(app);
     app.UseSwagger();
     app.UseSwaggerUI();
 }
