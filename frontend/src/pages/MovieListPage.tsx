@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Spinner, Alert, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Spinner, Alert, Button, InputGroup, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import API_URL from '../apiConfig';
 import { Movie } from '../interfaces/movie';
+import { filterMovies, sortMovies } from '../services/movieFilterService.tsx';
 
 
 const MovieListPage: React.FC = () => {
@@ -11,6 +12,13 @@ const MovieListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [ratingInProgress, setRatingInProgress] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
+  const [sortBy, setSortBy] = useState('');
+
+  const uniqueYears = [...new Set(movies.map(movie => 
+    new Date(movie.releaseDate).getFullYear()
+  ))].sort((a, b) => b - a);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -74,6 +82,72 @@ const MovieListPage: React.FC = () => {
   return (
     <Container>
       <h1 className="mb-4">Movie List</h1>
+      <div className="mb-4">
+        <Row className="g-3">
+          <Col md={4}>
+            <InputGroup>
+              <Form.Control
+                placeholder="Search movies, genres..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <Button 
+                  variant="outline-secondary"
+                  onClick={() => setSearchTerm('')}
+                >
+                  Clear
+                </Button>
+              )}
+            </InputGroup>
+          </Col>
+          
+          <Col md={4}>
+            <InputGroup>
+              <Form.Select
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="">All Years</option>
+                {uniqueYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </Form.Select>
+              {yearFilter && (
+                <Button 
+                  variant="outline-secondary"
+                  onClick={() => setYearFilter('')}
+                >
+                  Clear
+                </Button>
+              )}
+            </InputGroup>
+          </Col>
+          
+          <Col md={4}>
+            <InputGroup>
+              <Form.Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="">Sort By...</option>
+                <option value="rating-high">Rating (High to Low)</option>
+                <option value="rating-low">Rating (Low to High)</option>
+                <option value="year-new">Year (Newest First)</option>
+                <option value="year-old">Year (Oldest First)</option>
+              </Form.Select>
+              {sortBy && (
+                <Button 
+                  variant="outline-secondary"
+                  onClick={() => setSortBy('')}
+                >
+                  Clear
+                </Button>
+              )}
+            </InputGroup>
+          </Col>
+        </Row>
+      </div>
       {error && (
         <Alert 
           variant="danger" 
@@ -99,7 +173,11 @@ const MovieListPage: React.FC = () => {
               <Card.Body>
                 <Card.Title>{movie.title}</Card.Title>
                 <Card.Text>
-                  <div><strong>Genre:</strong> {movie.genre}</div>
+                  <div>
+                    <strong>Genre:</strong> {movie.genres?.length > 0 
+                      ? movie.genres.map(g => g.name).join(', ') 
+                      : movie.genre}
+                  </div>
                   <div><strong>Release Date:</strong> {new Date(movie.releaseDate).toLocaleDateString()}</div>
                   <div><strong>Rating:</strong> ⭐ {movie.averageScore || 'No ratings yet'} ({movie.ratingCount})</div>
                   <div className="mt-2">
