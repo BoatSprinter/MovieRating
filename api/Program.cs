@@ -48,7 +48,7 @@ builder.Services.AddCors(options =>
     {
         builder
             .WithOrigins("http://localhost:3000")  // React app's URL
-            .AllowAnyMethod()
+               .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();  // Important for authentication
     });
