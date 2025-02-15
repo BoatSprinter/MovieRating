@@ -8,6 +8,9 @@ interface GenreSelectProps {
     filteredGenres: string[];
     onGenreChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onGenreSelect: (genre: string) => void;
+    isValid?: boolean;
+    isInvalid?: boolean;
+    feedbackMessage?: string;
 }
 
 const GenreSelect: React.FC<GenreSelectProps> = ({
@@ -16,7 +19,10 @@ const GenreSelect: React.FC<GenreSelectProps> = ({
     genreSearch,
     filteredGenres,
     onGenreChange,
-    onGenreSelect
+    onGenreSelect,
+    isValid,
+    isInvalid,
+    feedbackMessage
 }) => {
     return (
         <Form.Group className="mb-3">
@@ -30,7 +36,15 @@ const GenreSelect: React.FC<GenreSelectProps> = ({
                     required
                     placeholder="Enter genre"
                     autoComplete="off"
+                    isValid={isValid}
+                    isInvalid={isInvalid}
                 />
+                <Form.Control.Feedback type="invalid">
+                    {feedbackMessage}
+                </Form.Control.Feedback>
+                <Form.Control.Feedback type="valid">
+                    {feedbackMessage}
+                </Form.Control.Feedback>
                 {genreSearch && filteredGenres.length > 0 && (
                     <div className="position-absolute w-100 mt-1 shadow-sm" style={{ 
                         zIndex: 1000, 

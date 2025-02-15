@@ -29,7 +29,7 @@ public class DbInit
         if (context != null)
         {
             // Create users
-            var user1 = new User { Username = "john@example.com", PasswordHash = ComputeHash("Password123") };
+            var user1 = new User { Username = "t1", PasswordHash = ComputeHash("t1") };
             var user2 = new User { Username = "jane@example.com", PasswordHash = ComputeHash("Password123") };
             var user3 = new User { Username = "bob@example.com", PasswordHash = ComputeHash("Password123") };
 

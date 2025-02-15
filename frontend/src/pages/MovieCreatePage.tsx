@@ -27,6 +27,11 @@ const MovieCreatePage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [genres, setGenres] = useState<string[]>([]);
     const [genreSearch, setGenreSearch] = useState('');
+    const [validationState, setValidationState] = useState({
+        title: { isValid: false, message: '' },
+        genre: { isValid: false, message: '' },
+        description: { isValid: false, message: '' }
+    });
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -49,11 +54,52 @@ const MovieCreatePage: React.FC = () => {
 
     const filteredGenres = filterGenres(genres, genreSearch);
 
+    const validateField = (name: string, value: string) => {
+        switch (name) {
+            case 'title':
+                if (!value) {
+                    return { isValid: false, message: 'Title is required' };
+                }
+                if (value.length < 2 || value.length > 100) {
+                    return { isValid: false, message: 'Title must be between 2 and 100 characters' };
+                }
+                if (!/^[0-9a-zA-ZæøåÆØÅ. \-]+$/.test(value)) {
+                    return { isValid: false, message: 'Title can only contain letters, numbers, spaces, dots, and hyphens' };
+                }
+                return { isValid: true, message: 'Title is valid' };
+
+            case 'genre':
+                if (!value) {
+                    return { isValid: false, message: 'Genre is required' };
+                }
+                if (value.length > 200) {
+                    return { isValid: false, message: 'Genre cannot exceed 200 characters' };
+                }
+                return { isValid: true, message: 'Genre is valid' };
+
+            case 'description':
+                if (!value) {
+                    return { isValid: false, message: 'Description is required' };
+                }
+                if (value.length < 2 || value.length > 1000) {
+                    return { isValid: false, message: 'Description must be between 2 and 1000 characters' };
+                }
+                return { isValid: true, message: 'Description is valid' };
+
+            default:
+                return { isValid: false, message: '' };
+        }
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setMovie(prev => ({
             ...prev,
             [name]: value
+        }));
+        setValidationState(prev => ({
+            ...prev,
+            [name]: validateField(name, value)
         }));
     };
 
@@ -141,7 +187,15 @@ const MovieCreatePage: React.FC = () => {
                                 onChange={handleChange}
                                 required
                                 placeholder="Enter movie title"
+                                isValid={validationState.title.isValid}
+                                isInvalid={movie.title !== '' && !validationState.title.isValid}
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {validationState.title.message}
+                            </Form.Control.Feedback>
+                            <Form.Control.Feedback type="valid">
+                                {validationState.title.message}
+                            </Form.Control.Feedback>
                         </Form.Group>
 
                         <GenreSelect
@@ -151,6 +205,9 @@ const MovieCreatePage: React.FC = () => {
                             filteredGenres={filteredGenres}
                             onGenreChange={handleGenreChange}
                             onGenreSelect={handleGenreSelect}
+                            isValid={validationState.genre.isValid}
+                            isInvalid={movie.genre !== '' && !validationState.genre.isValid}
+                            feedbackMessage={validationState.genre.message}
                         />
 
                         <Form.Group className="mb-3">
@@ -174,7 +231,15 @@ const MovieCreatePage: React.FC = () => {
                                 required
                                 rows={3}
                                 placeholder="Enter movie description"
+                                isValid={validationState.description.isValid}
+                                isInvalid={movie.description !== '' && !validationState.description.isValid}
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {validationState.description.message}
+                            </Form.Control.Feedback>
+                            <Form.Control.Feedback type="valid">
+                                {validationState.description.message}
+                            </Form.Control.Feedback>
                         </Form.Group>
 
                         <Form.Group className="mb-4">
