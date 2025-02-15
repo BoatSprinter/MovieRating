@@ -3,28 +3,14 @@ import { Container, Row, Col, Card, Spinner, Alert, Button } from 'react-bootstr
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import API_URL from '../apiConfig';
+import { Movie } from '../interfaces/movie';
 
-
-//remove the interface and use import /// remember to do so 
-interface Movie {
-  id: number;
-  title: string;
-  genre: string;
-  releaseDate: string;
-  description: string;
-  averageScore: number;
-  imagePath: string;
-}
-
-interface Rating {
-  movieId: number;
-  score: number;
-}
 
 const MovieListPage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ratingInProgress, setRatingInProgress] = useState(false);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -44,18 +30,34 @@ const MovieListPage: React.FC = () => {
   }, []);
 
   const handleRate = async (movieId: number, score: number) => {
+    if (ratingInProgress) return;
+    
+    setRatingInProgress(true);
+    setError(null);
+
     try {
-      await axios.post(`${API_URL}/api/Ratings`, {
-        MovieId: movieId,
+      await axios.post(`${API_URL}/api/Movies/${movieId}/rate`, {
         Score: score
+      }, {
+        withCredentials: true
       });
       
-      // Refresh the movies list to get updated average
+      // Refresh the movies list
       const response = await axios.get(`${API_URL}/api/Movies`);
       setMovies(response.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error rating movie:', err);
-      setError('Failed to rate movie');
+      // Show error message if user has already rated
+      if (err.response?.status === 400) {
+        setError(err.response.data);
+      } else {
+        setError('Failed to rate movie');
+      }
+
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setRatingInProgress(false);
     }
   };
 
@@ -69,17 +71,19 @@ const MovieListPage: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Container className="mt-4">
-        <Alert variant="danger">{error}</Alert>
-      </Container>
-    );
-  }
-
   return (
     <Container>
       <h1 className="mb-4">Movie List</h1>
+      {error && (
+        <Alert 
+          variant="danger" 
+          dismissible 
+          onClose={() => setError(null)}
+          className="mb-4"
+        >
+          {error}
+        </Alert>
+      )}
       <Row xs={1} md={2} lg={3} className="g-4">
         {movies.map((movie) => (
           <Col key={movie.id}>
@@ -97,7 +101,7 @@ const MovieListPage: React.FC = () => {
                 <Card.Text>
                   <div><strong>Genre:</strong> {movie.genre}</div>
                   <div><strong>Release Date:</strong> {new Date(movie.releaseDate).toLocaleDateString()}</div>
-                  <div><strong>Rating:</strong> ⭐ {movie.averageScore}</div>
+                  <div><strong>Rating:</strong> ⭐ {movie.averageScore || 'No ratings yet'} ({movie.ratingCount})</div>
                   <div className="mt-2">
                     {movie.description?.length > 100
                       ? `${movie.description.substring(0, 100)}...`
@@ -113,6 +117,7 @@ const MovieListPage: React.FC = () => {
                         variant="outline-primary"
                         size="sm"
                         onClick={() => handleRate(movie.id, score)}
+                        disabled={ratingInProgress}
                       >
                         {score} ⭐
                       </Button>
@@ -121,7 +126,7 @@ const MovieListPage: React.FC = () => {
                 </div>
                 <Link 
                   to={`/movies/${movie.id}`} 
-                  className="btn btn-primary"
+                  className="btn btn-primary mt-3"
                 >
                   View Details
                 </Link>
