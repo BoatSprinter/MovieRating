@@ -1,24 +1,26 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
-namespace api.DTOs
+namespace api.DTOs;
+
+public class MovieDto
 {
-    public class MovieDto
-    {
-        public int Id { get; set; }
+    [Required]
+    [StringLength(100, MinimumLength = 2)]
+    [RegularExpression(@"^[0-9a-zA-ZæøåÆØÅ. \-]+$", ErrorMessage = "Title can only contain letters, numbers, spaces, dots, and hyphens")]
+    [Display(Name = "Title name")]
+    public string Title { get; set; } = string.Empty;
 
-        [Required]
-        [RegularExpression(@"[0-9a-zA-ZæøåÆØÅ. \-]{2,20}", ErrorMessage = "The Title must be numbers or letters and between 2 to 20 characters.")]
-        [Display(Name = "Title name")]
-        public string Title { get; set; } = string.Empty;
+    [Required]
+    [StringLength(200)]  // Increased to accommodate multiple genres
+    public string Genre { get; set; } = string.Empty;
 
-        [Required]
-        public string Genre { get; set; } = string.Empty;
+    public DateTime ReleaseDate { get; set; }
 
-        public DateTime ReleaseDate { get; set; }
+    [Required]
+    [StringLength(1000, MinimumLength = 2)]
+    [Display(Name = "Description")]
+    public string Description { get; set; } = string.Empty;
 
-        [StringLength(200)]
-        public string? Description { get; set; }
-
-        public double AverageScore {get; set; }
-    }
+    public IFormFile? Image { get; set; }
 }
