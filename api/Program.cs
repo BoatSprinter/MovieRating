@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using api.Models;
 using api.DAL;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,25 +11,49 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();  // This ensures logs go to console
 builder.Logging.AddDebug();    // This ensures logs go to debug output
 
-// Add services to the container sjekk om man trenger de jason stuffene på controller fortsatt.
+
+
+// Add services to the container sjekk om man trenger de jason stuffene på controller fortsatt. det er jason loop greie så sjekk 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
+
+// Add Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // Changed to Always
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Update CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader();
-        });
+    options.AddPolicy("AllowReact", builder =>
+    {
+        builder
+            .WithOrigins("http://localhost:3000")  // React app's URL
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();  // Important for authentication
+    });
 });
+
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 
 // Add DbContext
@@ -43,8 +68,6 @@ if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot
 
 var app = builder.Build();
 
-
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -55,8 +78,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+// Use the CORS policy
+app.UseCors("AllowReact");  // Must be before Authentication and Authorization
 
+// Add authentication middleware
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStaticFiles();
