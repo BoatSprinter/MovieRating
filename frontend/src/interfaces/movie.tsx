@@ -6,4 +6,10 @@ export interface Movie {
     description: string;
     averageScore: number;
     imagePath: string; 
+    ratingCount: number;
 }
+
+export interface Rating {
+    movieId: number;
+    score: number;
+  }
