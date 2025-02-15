@@ -38,25 +38,25 @@ export const filterMovies = (
 
         return titleMatch || genreMatch || descMatch;
     }).sort((a, b) => {
-        // Sort by search relevance if there's a search term
-        if (searchTerm) {
-            const aGenre = a.genre.toLowerCase();
-            const bGenre = b.genre.toLowerCase();
-            const aTitle = a.title.toLowerCase();
-            const bTitle = b.title.toLowerCase();
-            
-            // Exact genre matches first
-            if (aGenre === searchLower && bGenre !== searchLower) return -1;
-            if (bGenre === searchLower && aGenre !== searchLower) return 1;
-            
-            // Genre contains search term next
-            if (aGenre.includes(searchLower) && !bGenre.includes(searchLower)) return -1;
-            if (bGenre.includes(searchLower) && !aGenre.includes(searchLower)) return 1;
-            
-            // Then title matches
-            if (aTitle.includes(searchLower) && !bTitle.includes(searchLower)) return -1;
-            if (bTitle.includes(searchLower) && !aTitle.includes(searchLower)) return 1;
-        }
+        if (!searchTerm) return 0;
+        
+        const aTitle = a.title.toLowerCase();
+        const bTitle = b.title.toLowerCase();
+        const aGenre = a.genre.toLowerCase();
+        const bGenre = b.genre.toLowerCase();
+
+        // Exact matches first
+        if (aGenre === searchLower && bGenre !== searchLower) return -1;
+        if (bGenre === searchLower && aGenre !== searchLower) return 1;
+        if (aTitle === searchLower && bTitle !== searchLower) return -1;
+        if (bTitle === searchLower && aTitle !== searchLower) return 1;
+
+        // Then starts with matches
+        if (aGenre.startsWith(searchLower) && !bGenre.startsWith(searchLower)) return -1;
+        if (bGenre.startsWith(searchLower) && !aGenre.startsWith(searchLower)) return 1;
+        if (aTitle.startsWith(searchLower) && !bTitle.startsWith(searchLower)) return -1;
+        if (bTitle.startsWith(searchLower) && !aTitle.startsWith(searchLower)) return 1;
+
         return 0;
     });
 
