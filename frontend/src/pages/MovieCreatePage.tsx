@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_URL from '../apiConfig';
 import { Movie } from '../interfaces/movie';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 const MovieCreatePage: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [movie, setMovie] = useState<Partial<Movie>>({
     title: '',
     genre: '',
@@ -18,6 +20,12 @@ const MovieCreatePage: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -55,26 +63,37 @@ const MovieCreatePage: React.FC = () => {
     setError('');
 
     const formData = new FormData();
-    formData.append('title', movie.title || '');
-    formData.append('genre', movie.genre || '');
-    formData.append('releaseDate', movie.releaseDate || '');
-    formData.append('description', movie.description || '');
+    formData.append('Title', movie.title || '');
+    formData.append('Genre', movie.genre || '');
+    formData.append('ReleaseDate', movie.releaseDate || new Date().toISOString());
+    formData.append('Description', movie.description || '');
+    
     if (image) {
-      formData.append('image', image);
+        formData.append('Image', image);
     }
 
     try {
-      await axios.post(`${API_URL}/api/Movies`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      navigate('/movies');
-    } catch (err) {
-      console.error('Error creating movie:', err);
-      setError('Failed to create movie');
+        const response = await axios.post(`${API_URL}/api/Movies`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            withCredentials: true,
+            transformRequest: [(data) => data], // Prevent axios from JSON stringifying the FormData
+        });
+        
+        if (response.status === 201 || response.status === 200) {
+            navigate('/movies');
+        }
+    } catch (err: any) {
+        console.error('Error creating movie:', err);
+        if (err.response?.data) {
+            const errorMessage = err.response.data.message || 'Failed to create movie';
+            setError(errorMessage);
+        } else {
+            setError('Failed to create movie');
+        }
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
