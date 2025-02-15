@@ -9,14 +9,29 @@ public class MovieDbContext : DbContext
 
     public DbSet<Movie> Movies { get; set; } = null!;
     public DbSet<Rating> Ratings { get; set; } = null!;
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Configure the one-to-many
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Rating>()
             .HasOne(r => r.Movie)
             .WithMany(m => m.Ratings)
-            .HasForeignKey(r => r.MovieId);
+            .HasForeignKey(r => r.MovieId)
+            .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Rating>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired(false);  // Allow null for anonymous ratings
+
+        // Add unique constraint for DeviceId + MovieId combination
+        modelBuilder.Entity<Rating>()
+            .HasIndex(r => new { r.DeviceId, r.MovieId })
+            .IsUnique()
+            .HasFilter("[DeviceId] IS NOT NULL"); // Only apply uniqueness when DeviceId is not null
     }    
 }
