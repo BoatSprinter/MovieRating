@@ -3,13 +3,18 @@ namespace api.Models;
 public class Movie
 {
     public int Id { get; set; }
-    public string? Title { get; set; }
-    public string? Genre { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Genre { get; set; } = string.Empty;
     public DateTime ReleaseDate { get; set; }
-    public string? Description { get; set; }
+    public string Description { get; set; } = string.Empty;
     public string? ImagePath { get; set; }
-    public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
+    public int UserId { get; set; }
+    
+    // New properties for rating statistics
+    public int RatingCount { get; set; } = 0;
+    public int TotalScore { get; set; } = 0;
+    public double AverageScore { get; set; } = 0;
 
-    // Calculate average score from ratings
-    public double AverageScore => Ratings.Any() ? Math.Round(Ratings.Average(r => r.Score), 1) : 0;
+    public User User { get; set; } = null!;
+    public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
 }
