@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Button, Container, Card, Alert, Image } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_URL from '../apiConfig';
 import { Movie } from '../interfaces/movie';
 import { useAuth } from '../contexts/AuthContext.tsx';
+import { getUniqueGenres, filterGenres } from '../services/genreFilterService.tsx';
 
 const MovieCreatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,12 +21,29 @@ const MovieCreatePage: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [genres, setGenres] = useState<string[]>([]);
+  const [genreSearch, setGenreSearch] = useState('');
 
   React.useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/Movies`);
+        const uniqueGenres = getUniqueGenres(response.data);
+        setGenres(uniqueGenres);
+      } catch (err) {
+        console.error('Error fetching genres:', err);
+      }
+    };
+    fetchGenres();
+  }, []);
+
+  const filteredGenres = filterGenres(genres, genreSearch);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -121,14 +139,50 @@ const MovieCreatePage: React.FC = () => {
 
             <Form.Group className="mb-3">
               <Form.Label>Genre</Form.Label>
-              <Form.Control
-                type="text"
-                name="genre"
-                value={movie.genre}
-                onChange={handleChange}
-                required
-                placeholder="Enter genre"
-              />
+              <div className="position-relative">
+                <Form.Control
+                  type="text"
+                  name="genre"
+                  value={movie.genre}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setGenreSearch(e.target.value);  // Update genre search when typing
+                  }}
+                  required
+                  placeholder="Enter genre"
+                  autoComplete="off"
+                />
+                {genreSearch && filteredGenres.length > 0 && (
+                  <div className="position-absolute w-100 mt-1 shadow-sm" style={{ 
+                    zIndex: 1000, 
+                    maxHeight: '200px', 
+                    overflowY: 'auto',
+                    backgroundColor: 'white',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '4px'
+                  }}>
+                    {filteredGenres.map((genre, index) => (
+                      <div
+                        key={index}
+                        className="px-3 py-2 cursor-pointer hover-bg-light"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setMovie(prev => ({ ...prev, genre }));
+                          setGenreSearch('');
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f8f9fa';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'white';
+                        }}
+                      >
+                        {genre}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </Form.Group>
 
             <Form.Group className="mb-3">
