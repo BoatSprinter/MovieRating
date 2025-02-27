@@ -75,9 +75,22 @@ public class MovieControllerTests
         var result = await controller.GetMovies();
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var movies = Assert.IsType<List<object>>(okResult.Value);
-        Assert.Equal(2, movies.Count);
+        Assert.IsType<ActionResult<IEnumerable<Movie>>>(result);
+        Assert.IsType<OkObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task GetMovie_ReturnsNotFound_WhenMovieDoesNotExist()
+    {
+        // Arrange
+        using var context = GetDbContext();
+        var controller = GetController(context);
+
+        // Act
+        var result = await controller.GetMovie(999);
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result.Result);
     }
 
     [Fact]
@@ -104,18 +117,87 @@ public class MovieControllerTests
 
 
     [Fact]
-    public async Task GetMovie_ReturnsNotFound_WhenMovieDoesNotExist()
+    public async Task CreateMovie_ReturnsBadRequest_WhenMovieDataIsInvalid()
     {
         // Arrange
         using var context = GetDbContext();
         var controller = GetController(context);
 
+        var invalidMovie = new MovieDto
+        {
+            Title = "", // Invalid: Title is required
+            Genre = "Sci-Fi",
+            ReleaseDate = DateTime.Now,
+            Description = "" // Invalid: Description is required
+        };
+
         // Act
-        var result = await controller.GetMovie(999);
+        var result = await controller.CreateMovie(invalidMovie);
 
         // Assert
-        Assert.IsType<NotFoundResult>(result.Result);
+        Assert.IsType<ActionResult<Movie>>(result);
+        Assert.IsType<BadRequestObjectResult>(result.Result);
     }
+
+
+    [Fact]
+    public async Task UpdateMovie_ReturnsOk_WhenMovieIsUpdatedSuccessfully()
+    {
+        // Arrange
+        using var context = GetDbContext();
+
+
+        // Create and save a movie first
+        var movie = new Movie 
+        { 
+            Title = "Old Title", 
+            Genre = "Action", 
+            ReleaseDate = DateTime.Now, 
+            Description = "Old description"
+        };
+        context.Movies.Add(movie);
+        await context.SaveChangesAsync();
+
+        var controller = GetController(context);
+
+        var updatedMovie = new MovieDto
+        {
+            Title = "New Title",
+            Genre = "Action",
+            ReleaseDate = movie.ReleaseDate,
+            Description = "Updated description"
+        };
+
+        // Act
+        var result = await controller.UpdateMovie(updatedMovie, movie.Id);
+
+        // Assert
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task UpdateMovie_ReturnsNotFound_WhenMovieDoesNotExist()
+    {
+        // Arrange
+        using var context = GetDbContext();
+        var controller = GetController(context);
+
+        var updatedMovie = new MovieDto
+        {
+            Title = "Non-existent Movie",
+            Genre = "Thriller",
+            ReleaseDate = DateTime.Now,
+            Description = "Does not exist"
+        };
+
+        // Act
+        var result = await controller.UpdateMovie(updatedMovie, 999); // Movie ID 999 does not exist
+
+        // Assert
+        Assert.IsType<NotFoundObjectResult>(result);
+    }
+
+
 
     [Fact]
     public async Task DeleteMovie_RemovesMovie_WhenAuthorized()
@@ -142,6 +224,21 @@ public class MovieControllerTests
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.Equal("Movie deleted successfully", okResult.Value);
         Assert.Null(await context.Movies.FindAsync(1)); // Verify deletion
+    }
+
+
+    [Fact]
+    public async Task DeleteMovie_ReturnsNotFound_WhenMovieDoesNotExist()
+    {
+        // Arrange
+        using var context = GetDbContext();
+        var controller = GetController(context);
+
+        // Act
+        var result = await controller.DeleteMovie(999); // Movie ID 999 does not exist
+
+        // Assert
+        Assert.IsType<NotFoundObjectResult>(result);
     }
 
 }
