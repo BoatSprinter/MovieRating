@@ -32,6 +32,7 @@ const MovieCreatePage: React.FC = () => {
         genre: { isValid: false, message: '' },
         description: { isValid: false, message: '' }
     });
+    const [filteredGenres, setFilteredGenres] = useState<string[]>([]);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -51,8 +52,6 @@ const MovieCreatePage: React.FC = () => {
         };
         fetchGenres();
     }, []);
-
-    const filteredGenres = filterGenres(genres, genreSearch);
 
     const validateField = (name: string, value: string) => {
         switch (name) {
@@ -125,13 +124,44 @@ const MovieCreatePage: React.FC = () => {
     };
 
     const handleGenreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        handleChange(e);
-        setGenreSearch(e.target.value);
+        const { value } = e.target;
+        setMovie(prev => ({
+            ...prev,
+            genre: value
+        }));
+        setGenreSearch(value);
+        
+        // Update validation state
+        setValidationState(prev => ({
+            ...prev,
+            genre: validateField('genre', value)
+        }));
+        
+        // Filter genres based on input - more like Google search
+        if (value.trim()) {
+            const filtered = filterGenres(genres, value);
+            setFilteredGenres(filtered.slice(0, 8)); // Limit to 8 suggestions
+        } else {
+            setFilteredGenres([]);
+        }
     };
 
     const handleGenreSelect = (genre: string) => {
         setMovie(prev => ({ ...prev, genre }));
         setGenreSearch('');
+        setFilteredGenres([]);
+        
+        // Update validation after selection
+        setValidationState(prev => ({
+            ...prev,
+            genre: validateField('genre', genre)
+        }));
+        
+        // Focus on the next field after selection
+        const nextField = document.querySelector('input[name="releaseDate"]');
+        if (nextField instanceof HTMLElement) {
+            nextField.focus();
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {

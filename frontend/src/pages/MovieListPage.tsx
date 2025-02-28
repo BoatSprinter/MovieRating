@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, InputGroup, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Form, InputGroup, Alert, Spinner, Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { fetchMovies, rateMovie } from '../services/movieApiService.tsx';
 import { Movie } from '../interfaces/movie';
 import MovieCard from '../components/MovieCard.tsx';
 import { filterMovies, sortMovies } from '../components/movieListFilter.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import { FaSearch, FaFilter, FaSortAmountDown } from 'react-icons/fa';
+
 
 const MovieListPage: React.FC = () => {
     const [movies, setMovies] = useState<Movie[]>([]);
@@ -13,6 +17,7 @@ const MovieListPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [ratingInProgress, setRatingInProgress] = useState(false);
+    const { isAuthenticated } = useAuth();
 
     useEffect(() => {
         const loadMovies = async () => {
@@ -62,40 +67,76 @@ const MovieListPage: React.FC = () => {
     }
 
     return (
-        <Container>
-            <div className="mb-4">
+        <Container className="py-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h1 className="mb-0 text-color">Movies</h1>
+                {isAuthenticated && (
+                    <Link to="/movies/create" className="btn btn-success">
+                        Add New Movie
+                    </Link>
+                )}
+            </div>
+
+            <div className="mb-4 p-3 search-filter-container rounded shadow-sm">
                 <Row className="g-3">
                     <Col md={4}>
                         <InputGroup>
+                            <InputGroup.Text className="search-icons">
+                                <FaSearch />
+                            </InputGroup.Text>
                             <Form.Control
-                                placeholder="Search movies..."
+                                placeholder="Search movies, genres, etc."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input"
+                                style={{ boxShadow: 'none' }}
                             />
+                            {searchTerm && (
+                                <Button 
+                                    variant="outline-secondary" 
+                                    onClick={() => setSearchTerm('')}
+                                >
+                                    ×
+                                </Button>
+                            )}
                         </InputGroup>
                     </Col>
                     <Col md={4}>
-                        <Form.Select
-                            value={yearFilter}
-                            onChange={(e) => setYearFilter(e.target.value)}
-                        >
-                            <option value="">All Years</option>
-                            {uniqueYears.map(year => (
-                                <option key={year} value={year}>{year}</option>
-                            ))}
-                        </Form.Select>
+                        <InputGroup>
+                            <InputGroup.Text className="search-icons">
+                                <FaFilter className="text-muted" />
+                            </InputGroup.Text>
+                            <Form.Select
+                                value={yearFilter}
+                                onChange={(e) => setYearFilter(e.target.value)}
+                                className="border-start-0"
+                                style={{ boxShadow: 'none' }}
+                            >
+                                <option value="">All Years</option>
+                                {uniqueYears.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </Form.Select>
+                        </InputGroup>
                     </Col>
                     <Col md={4}>
-                        <Form.Select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                        >
-                            <option value="">Sort By...</option>
-                            <option value="rating-high">Rating (High to Low)</option>
-                            <option value="rating-low">Rating (Low to High)</option>
-                            <option value="year-new">Year (Newest First)</option>
-                            <option value="year-old">Year (Oldest First)</option>
-                        </Form.Select>
+                        <InputGroup>
+                            <InputGroup.Text className="search-icons">
+                                <FaSortAmountDown className="text-muted" />
+                            </InputGroup.Text>
+                            <Form.Select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="border-start-0"
+                                style={{ boxShadow: 'none' }}
+                            >
+                                <option value="">Sort By...</option>
+                                <option value="rating-high">Rating (High to Low)</option>
+                                <option value="rating-low">Rating (Low to High)</option>
+                                <option value="year-new">Year (Newest First)</option>
+                                <option value="year-old">Year (Oldest First)</option>
+                            </Form.Select>
+                        </InputGroup>
                     </Col>
                 </Row>
             </div>
@@ -106,17 +147,24 @@ const MovieListPage: React.FC = () => {
                 </Alert>
             )}
 
-            <Row xs={1} md={2} lg={3} className="g-4">
-                {filteredMovies.map((movie) => (
-                    <Col key={movie.id}>
-                        <MovieCard
-                            movie={movie}
-                            onRate={handleRate}
-                            ratingInProgress={ratingInProgress}
-                        />
-                    </Col>
-                ))}
-            </Row>
+            {filteredMovies.length === 0 ? (
+                <div className="text-center py-5">
+                    <h4 className="text-muted">No movies found</h4>
+                    <p>Try adjusting your search or filters</p>
+                </div>
+            ) : (
+                <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+                    {filteredMovies.map((movie) => (
+                        <Col key={movie.id}>
+                            <MovieCard
+                                movie={movie}
+                                onRate={handleRate}
+                                ratingInProgress={ratingInProgress}
+                            />
+                        </Col>
+                    ))}
+                </Row>
+            )}
         </Container>
     );
 };
