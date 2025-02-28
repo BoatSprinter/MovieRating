@@ -14,6 +14,7 @@ import { ThemeProvider } from './contexts/ThemeContext.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import RegisterPage from './pages/RegisterPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
+import MovieInfoPage from './pages/MovieInfoPage.tsx';
 
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -117,6 +118,7 @@ const AnimatedRoutes = () => {
           <AdminPage />
         </AdminRoute>
       } />
+      <Route path="/movie/:id" element={<MovieInfoPage />} />
     </Routes>
   );
 };

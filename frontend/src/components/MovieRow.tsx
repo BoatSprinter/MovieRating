@@ -80,7 +80,7 @@ const MovieRow: React.FC<MovieRowProps> = ({ genre, movies }) => {
           >
             {movies.map(movie => (
               <Col key={movie.id} xs={6} sm={4} md={3} lg={2} className="flex-shrink-0">
-                <Link to={'/movies/'} className="text-decoration-none">
+                <Link to={`/movie/${movie.id}`} className="text-decoration-none">
                   <div className="position-relative movie-card">
                     {movie.imagePath ? (
                       <img 

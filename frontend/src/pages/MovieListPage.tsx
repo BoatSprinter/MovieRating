@@ -17,8 +17,8 @@ const MovieListPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [ratingInProgress, setRatingInProgress] = useState(false);
-    const { isAuthenticated } = useAuth();
-
+    const { user } = useAuth();
+    const isAuthenticated = !!user;
     useEffect(() => {
         const loadMovies = async () => {
             setLoading(true);

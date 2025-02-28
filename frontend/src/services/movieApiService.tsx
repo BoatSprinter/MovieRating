@@ -130,3 +130,25 @@ export const fetchUserMovies = async (): Promise<Movie[]> => {
         throw error;
     }
 };
+
+// Get a single movie with details
+export const getMovie = async (id: number) => {
+  try {
+    const response = await axios.get(`/api/Movies/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching movie with ID ${id}:`, error);
+    throw error;
+  }
+};
+
+// Add a comment to a movie
+export const addComment = async (movieId: number, commentData: { text: string, authorName: string }) => {
+  try {
+    const response = await axios.post(`/api/Comment/${movieId}`, commentData);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    throw error;
+  }
+};

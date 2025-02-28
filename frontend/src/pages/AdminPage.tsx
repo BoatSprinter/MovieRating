@@ -60,50 +60,61 @@ const AdminPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  if (loading) return <div className="d-flex justify-content-center my-5"><div className="spinner-border text-primary" role="status"></div></div>;
 
   return (
-    <div className="container mt-4">
-      <h2>Admin Dashboard - Pending Approvals</h2>
+    <div className="container-fluid py-4">
+      <div className="row mb-4">
+        <div className="col">
+          <h2 className="display-6 fw-bold">Admin Dashboard</h2>
+          <p className="text-muted">Manage user approval requests</p>
+        </div>
+      </div>
       
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && <div className="alert alert-danger shadow-sm">{error}</div>}
       
       {pendingUsers.length === 0 ? (
-        <div className="alert alert-info">No pending user approvals</div>
+        <div className="alert alert-info shadow-sm p-4 text-center">
+          <i className="bi bi-check-circle-fill me-2"></i>
+          No pending user approvals at this time
+        </div>
       ) : (
-        <table className="table table-striped mt-3">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pendingUsers.map(user => (
-              <tr key={user.id}>
-                <td>{user.username}</td>
-                <td>
-                  <span className="badge bg-warning">{user.approvalStatus}</span>
-                </td>
-                <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                <td>
-                  <button 
-                    onClick={() => handleApprove(user.id)} 
-                    className="btn btn-success btn-sm me-2">
-                    Approve
-                  </button>
-                  <button 
-                    onClick={() => handleReject(user.id)} 
-                    className="btn btn-danger btn-sm">
-                    Reject
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+          {pendingUsers.map(user => (
+            <div className="col" key={user.id}>
+              <div className="card h-100 shadow-sm border-0">
+                <div className="card-body">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="card-title mb-0 fw-bold">{user.username}</h5>
+                    <span className="badge bg-warning text-dark px-3 py-2 rounded-pill">
+                      {user.approvalStatus}
+                    </span>
+                  </div>
+                  <p className="card-text text-muted mb-4">
+                    <i className="bi bi-calendar3 me-2"></i>
+                    Registered: {new Date(user.createdAt).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'short', 
+                      day: 'numeric'
+                    })}
+                  </p>
+                  <div className="d-grid gap-2">
+                    <button 
+                      onClick={() => handleApprove(user.id)} 
+                      className="btn btn-success">
+                      <i className="bi bi-check-lg me-2"></i>Approve
+                    </button>
+                    <button 
+                      onClick={() => handleReject(user.id)} 
+                      className="btn btn-danger">
+                      <i className="bi bi-x-lg me-2"></i>Reject
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
