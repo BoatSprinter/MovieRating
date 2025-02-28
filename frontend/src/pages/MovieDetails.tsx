@@ -10,7 +10,8 @@ const MovieDetails: React.FC = () => {
     const [movies, setMovies] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const { isAuthenticated } = useAuth();
+    const { user } = useAuth();
+    const isAuthenticated = !!user;
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [updateForm, setUpdateForm] = useState<UpdateMovieForm | null>(null);
     const [updateError, setUpdateError] = useState('');

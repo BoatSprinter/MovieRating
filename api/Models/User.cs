@@ -13,5 +13,8 @@ public class User
     [Required]
     public string PasswordHash { get; set; } = string.Empty;
 
+    public string ApprovalStatus { get; set; } = "Pending";
+    public bool IsAdmin { get; set; } = false;
+
     public List<Movie> Movies { get; set; } = new();
 } 

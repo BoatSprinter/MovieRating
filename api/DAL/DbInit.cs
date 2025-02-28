@@ -28,10 +28,25 @@ public class DbInit
 
         if (context != null)
         {
-            // Create users
-            var user1 = new User { Username = "t1", PasswordHash = ComputeHash("t1") };
-            var user2 = new User { Username = "jane@example.com", PasswordHash = ComputeHash("Password123") };
-            var user3 = new User { Username = "bob@example.com", PasswordHash = ComputeHash("Password123") };
+            // Create an admin user with a hashed password
+            var adminExists = context.Users.Any(u => u.Username == "admin");
+            if (!adminExists)
+            {
+                var adminUser = new User
+                {
+                    Username = "admin",
+                    PasswordHash = ComputeHash("admin"), // Hash the password
+                    IsAdmin = true,
+                    ApprovalStatus = "Approved" // Admin is auto-approved
+                };
+                context.Users.Add(adminUser);
+                context.SaveChanges();
+            }
+
+            // Then create your regular users as normal, but mark them as pending
+            var user1 = new User { Username = "t1", PasswordHash = "t1"};
+            var user2 = new User { Username = "jane@example.com", PasswordHash = "Password123" };
+            var user3 = new User { Username = "bob@example.com", PasswordHash = "Password123" };
 
             context.Users.AddRange(user1, user2, user3);
             context.SaveChanges();
@@ -47,7 +62,7 @@ public class DbInit
                     ReleaseDate = new DateTime(2010, 7, 16),
                     Description = "A thief who steals corporate secrets through dream-sharing technology...",
                     ImagePath = "/uploads/inception.png",
-                    UserId = user1.Id
+                    UserId = 1
                 },
                 new Movie
                 {

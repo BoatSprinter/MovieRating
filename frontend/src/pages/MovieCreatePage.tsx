@@ -13,7 +13,8 @@ import { validateMovie } from '../utils/movieValidation.tsx';
 
 const MovieCreatePage: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
+    const { user } = useAuth();
+    const isAuthenticated = !!user;
     const [movie, setMovie] = useState<Partial<Movie>>({
         title: '',
         genre: '',
@@ -169,19 +170,21 @@ const MovieCreatePage: React.FC = () => {
         setLoading(true);
         setError('');
 
-        const validationErrors = validateMovie({
-            title: movie.title || '',
-            genre: movie.genre || '',
-            description: movie.description || ''
-        });
-
-        if (validationErrors.length > 0) {
-            setError(validationErrors.join('\n'));
-            setLoading(false);
-            return;
-        }
-
         try {
+            console.log('Starting movie creation...', { user });
+            
+            const validationErrors = validateMovie({
+                title: movie.title || '',
+                genre: movie.genre || '',
+                description: movie.description || ''
+            });
+
+            if (validationErrors.length > 0) {
+                setError(validationErrors.join('\n'));
+                setLoading(false);
+                return;
+            }
+
             await createMovie({
                 title: movie.title || '',
                 genre: movie.genre || '',
@@ -191,8 +194,13 @@ const MovieCreatePage: React.FC = () => {
             });
             navigate('/movies');
         } catch (err: any) {
+            console.error('Movie creation error:', err);
             const errorMessage = err.response?.data?.message || 'Failed to create movie';
             setError(errorMessage);
+            
+            if (err.response?.status === 401) {
+                console.log('Authentication error during movie creation');
+            }
         } finally {
             setLoading(false);
         }
@@ -244,9 +252,12 @@ const MovieCreatePage: React.FC = () => {
                             <Form.Label>Release Date</Form.Label>
                             <Form.Control
                                 type="date"
+                                id="releaseDate"
                                 name="releaseDate"
-                                value={movie.releaseDate}
+                                value={movie.releaseDate || ''}
                                 onChange={handleChange}
+                                max="9999-12-31"
+                                className="form-control"
                                 required
                             />
                         </Form.Group>

@@ -52,29 +52,48 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult> Login(LoginDto loginDto)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == loginDto.Username);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == loginDto.Username);
+        
+        if (user == null)
+        {
+            return Unauthorized("Invalid username or password");
+        }
 
-        if (user == null || user.PasswordHash != ComputeHash(loginDto.Password))
+        // Hash the provided password and compare with stored hash
+        var hashedPassword = ComputeHash(loginDto.Password);
+        if (hashedPassword != user.PasswordHash)
         {
             return Unauthorized("Invalid username or password");
         }
 
         var claims = new List<Claim>
         {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
+        if (user.IsAdmin)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+        }
+
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var authProperties = new AuthenticationProperties();
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+        };
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(claimsIdentity),
             authProperties);
 
-        return Ok("Login successful");
+        return Ok(new { 
+            message = "Login successful", 
+            isAdmin = user.IsAdmin,
+            username = user.Username
+        });
     }
 
     [HttpPost("logout")]
@@ -85,22 +104,23 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("check")]
-    public ActionResult CheckAuth()
+    public IActionResult CheckAuth()
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return Ok(new
-            {
-                isAuthenticated = true,
-                username = User.Identity.Name
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var username = User.FindFirstValue(ClaimTypes.Name);
+            var isAdmin = User.IsInRole("Admin");
+            
+            return Ok(new { 
+                isAuthenticated = true, 
+                userId = userId, 
+                username = username,
+                isAdmin = isAdmin
             });
         }
-
-        return Ok(new
-        {
-            isAuthenticated = false,
-            username = (string?)null
-        });
+        
+        return Ok(new { isAuthenticated = false });
     }
 
     private string ComputeHash(string password)

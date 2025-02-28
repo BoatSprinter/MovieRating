@@ -6,7 +6,9 @@ import { useTheme } from '../contexts/ThemeContext.tsx';
 import { FaSun, FaMoon } from 'react-icons/fa';
 
 const NavMenu: React.FC = () => {
-    const { isAuthenticated, username, logout } = useAuth();
+    const { user, logout } = useAuth();
+    const isAuthenticated = !!user;
+    const username = user?.username || '';
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);

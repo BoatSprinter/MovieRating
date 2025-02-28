@@ -7,7 +7,9 @@ import { fetchMovies } from '../services/movieApiService.tsx';
 import MovieRow from '../components/MovieRow.tsx';
 
 const HomePage: React.FC = () => {
-    const { isAuthenticated, username } = useAuth();
+    const { user } = useAuth();
+    const isAuthenticated = !!user;
+    const username = user?.username || '';
     const [movies, setMovies] = useState<Movie[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');

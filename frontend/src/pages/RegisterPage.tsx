@@ -29,7 +29,11 @@ const RegisterPage: React.FC = () => {
         }
 
         try {
-            await register(username, password, confirmPassword);
+            await register({
+                username,
+                password,
+                confirmPassword
+            });
             navigate('/login');
         } catch (err: any) {
             setError(err.message || 'Failed to register. Please try again.');

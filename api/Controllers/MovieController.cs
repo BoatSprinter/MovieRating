@@ -83,7 +83,17 @@ public class MoviesController : ControllerBase
                 $"Description='{movieDto.Description}', " +
                 $"HasImage={movieDto.Image != null}");
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized("User ID not found");
+            }
+
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return BadRequest("Invalid user ID format");
+            }
+
             _logger.LogInformation($"Creating movie for userId: {userId}");
 
             var movie = new Movie
@@ -237,7 +247,18 @@ public class MoviesController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                _logger.LogWarning("User ID claim is null or empty");
+                return Unauthorized("User not authenticated");
+            }
+
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                _logger.LogWarning($"Failed to parse user ID from claim: {userIdClaim}");
+                return BadRequest("Invalid user ID format");
+            }
             
             var userMovies = await _context.Movies
                 .Include(m => m.Ratings)
@@ -260,7 +281,7 @@ public class MoviesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching user movies");
-            return StatusCode(500, new { message = "Error fetching movies" });
+            return StatusCode(500, "Internal server error");
         }
     }
 
