@@ -18,7 +18,7 @@ public class RegisterDto
 
     [Required]
     [StringLength(100, MinimumLength = 6)]
-    [RegularExpression(@"^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[0-9])(?=.*[a-z]).{6,}$", 
+    [RegularExpression(@"^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};:'""\\|,.<>/?])(?=.*[0-9])(?=.*[a-z]).{6,}$", 
         ErrorMessage = "Password must contain at least one uppercase letter, one special character, and one number")]
     public string Password { get; set; } = string.Empty;
 

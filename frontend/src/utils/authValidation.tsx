@@ -23,6 +23,7 @@ export const validatePassword = (password: string): ValidationState => {
     const requirements = [
         { met: password.length >= 6, text: 'At least 6 characters' },
         { met: /[A-Z]/.test(password), text: 'One uppercase letter' },
+        { met: /[a-z]/.test(password), text: 'One lowercase letter' },
         { met: /[0-9]/.test(password), text: 'One number' },
         { met: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password), text: 'One special character (!@#$%^&*()_+-=[]{};\'"\\|,.<>/?)' }
     ];
