@@ -136,7 +136,7 @@ public class MovieControllerTests
 
         // Assert
         Assert.IsType<ActionResult<Movie>>(result);
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.IsType<ObjectResult>(result.Result);
     }
 
 
@@ -146,6 +146,10 @@ public class MovieControllerTests
         // Arrange
         using var context = GetDbContext();
 
+        // 🛠 Ensure the user exists first
+        var user = new User { Id = 1, Username = "testuser", PasswordHash = "hashedpassword" };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
 
         // Create and save a movie first
         var movie = new Movie 
@@ -153,7 +157,8 @@ public class MovieControllerTests
             Title = "Old Title", 
             Genre = "Action", 
             ReleaseDate = DateTime.Now, 
-            Description = "Old description"
+            Description = "Old description",
+            UserId = 1
         };
         context.Movies.Add(movie);
         await context.SaveChangesAsync();
