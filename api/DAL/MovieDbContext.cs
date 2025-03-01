@@ -10,6 +10,7 @@ public class MovieDbContext : DbContext
     public DbSet<Movie> Movies { get; set; } = null!;
     public DbSet<Rating> Ratings { get; set; } = null!;
     public DbSet<User> Users => Set<User>();
+    public DbSet<Comment> Comments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

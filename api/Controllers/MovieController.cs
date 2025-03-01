@@ -151,11 +151,13 @@ public class MoviesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<Movie>> GetMovie(int id)
     {
-        var movie = await _context.Movies.FindAsync(id);
+        var movie = await _context.Movies
+            .Include(m => m.Comments)
+            .FirstOrDefaultAsync(m => m.Id == id);
+        
         if (movie == null)
-        {
             return NotFound();
-        }
+        
         return movie;
     }
 

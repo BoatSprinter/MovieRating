@@ -17,4 +17,5 @@ public class Movie
 
     public User User { get; set; } = null!;
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }
